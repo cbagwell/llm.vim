@@ -101,6 +101,20 @@ The following keymaps are active when in the `llmchat` buffer:
     Can be used both for implement a function based on comment description
     or to complete incomplete sentences/paragraphs.
 
+                                                        *LLMRead*
+:LLMRead {prompt}
+    Uses `llm` to read a prompt and add the response to the next line in
+    the current buffer.
+
+==============================================================================
+5. Functions                                            *llm-functions*
+
+llm#LLMRead({prompt})                                   *llm#LLMRead*
+    Uses `llm` to read a prompt and return the response. This function is
+    designed for use in expressions, for example, in insert mode using
+    `<C-r>=llm#LLMRead('Return a dogs name.  Just the name itself.')` to
+    insert the LLM's response directly into the buffer at current location.
+
 ==============================================================================
 4. Usage                                                *llm-usage*
 

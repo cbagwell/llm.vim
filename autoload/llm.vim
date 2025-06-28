@@ -368,6 +368,25 @@ function! s:LLMExitCallback(buffer_nr, temp_file, job_id, status) abort
     endif
 endfunction
 
+function! llm#LLMRead(prompt) abort
+    let l:command = g:llm_command
+    if !empty(g:llm_model)
+        let l:command .= ' -m ' . g:llm_model
+    endif
+    if !empty(g:llm_model_temperature)
+        let l:command .= ' -o temperature ' . g:llm_model_temperature
+    endif
+    let l:command .= ' ' . shellescape(a:prompt)
+
+    let l:output = system(l:command)
+    if v:shell_error
+        echom 'llm command failed.'
+	return ''
+    else
+	return trim(l:output)
+    endif
+endfunction
+
 function! llm#LLMFilter(prompt) abort range
     let l:command = g:llm_command
     if !empty(g:llm_model)

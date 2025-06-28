@@ -52,6 +52,12 @@ The following keymaps are active when in the `llmchat` buffer:
     tool.
     * Prompt can be passed in or editted within `llmchat` buffer.
     * Optionally paste in context using visual selection or ranges.
+  * **:LLMRead**
+    * Uses `llm` to read a prompt and add the response to the next line in
+      the current buffer.
+      The function llm#LLMRead(prompt) can also be used to return a
+      string. While in insert mode, you can use this syntax:
+     `<C-r>=llm#LLMRead('Return a dogs name.  Just the name itself.')`
   * **:LLMCancel**
     * Cancels any currently running `llm` job. If no job is running, it will
       display a message.
