@@ -233,6 +233,8 @@ function! s:GetLastPromptHeader(buffer_nr) abort
 endfunction
 
 function! s:LLMStreamCallback(buffer_nr, channel, message) abort
+    let l:is_at_bottom = (line('.') == line('$'))
+
     " If spinner is active, remove it before appending new text
     if exists('g:llm_job_info') && g:llm_job_info.spinner_active
         " Check if the last line is the spinner
@@ -252,14 +254,10 @@ function! s:LLMStreamCallback(buffer_nr, channel, message) abort
     endif
 
     " If the llmchat buffer is currently active in the current window,
-    " and the cursor was near the end, move it to the new end.
-    if bufnr('%') == a:buffer_nr
-        let l:current_line = line('.')
-        let l:total_lines = line('$')
-        if l:current_line >= l:total_lines - 5
-            normal! G
-            redraw
-        endif
+    " and the cursor was at the end, move it to the new end.
+    if bufnr('%') == a:buffer_nr && l:is_at_bottom
+	normal! G
+	redraw
     endif
 endfunction
 
@@ -296,6 +294,8 @@ function! s:LLMTimeoutCallback(job_id, buffer_nr, timer_id) abort
         let l:time_since_last_output = reltimefloat(reltime(g:llm_job_info.last_output_time))
 
         if l:time_since_last_output >= 1.0 && job_status(a:job_id) ==? 'run'
+	    let l:is_at_bottom = (line('.') == line('$'))
+
             " Time to show/update spinner
             let g:llm_job_info.spinner_index = (g:llm_job_info.spinner_index + 1) % len(g:llm_spinner_chars)
             let l:spinner_char = g:llm_spinner_chars[g:llm_job_info.spinner_index]
@@ -316,8 +316,9 @@ function! s:LLMTimeoutCallback(job_id, buffer_nr, timer_id) abort
                 let g:llm_job_info.spinner_active = v:true
             endif
 
-            " Move cursor to end if in llmchat buffer
-            if bufnr('%') == a:buffer_nr
+            " In case we appended, move cursor to end if in llmchat buffer
+	    " and it was already at end.
+            if bufnr('%') == a:buffer_nr && l:is_at_bottom
                 normal! G
             endif
         endif
@@ -331,6 +332,8 @@ function! s:LLMTimeoutCallback(job_id, buffer_nr, timer_id) abort
 endfunction
 
 function! s:LLMExitCallback(buffer_nr, temp_file, job_id, status) abort
+    let l:is_at_bottom = (line('.') == line('$'))
+
     " Remove spinner if it was active
     if exists('g:llm_job_info') && g:llm_job_info.spinner_active
         " Check if the last line is the spinner
@@ -359,8 +362,9 @@ function! s:LLMExitCallback(buffer_nr, temp_file, job_id, status) abort
     " Otherwise (error, stopped, etc.), delete the last empty prompt.
     if a:status == 0
         call appendbufline(a:buffer_nr, '$', ['', '# >>> User Prompt', ''])
-        " Only move cursor if the llmchat buffer is currently active
-        if bufnr('%') == a:buffer_nr
+        " Only move cursor if the llmchat buffer is currently active and
+	" were previously at end of buffer.
+        if bufnr('%') == a:buffer_nr && l:is_at_bottom
             normal! G
         endif
     else
