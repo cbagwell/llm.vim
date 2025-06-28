@@ -111,7 +111,7 @@ function! llm#LLMChat(...) abort range
             let l:llm_cmd .= ' -o temperature ' . g:llm_model_temperature
         endif
         "let l:llm_cmd = 'echo this is a fixed response.'
-        "let l:llm_cmd = 'while true; do echo sleeping; sleep 5; done'
+        "let l:llm_cmd = 'while true; do sleep 5; echo sleeping; done'
         let l:cmd = ['/bin/sh', '-c', l:llm_cmd]
 
         " Store all job-related info in a single global dictionary
@@ -357,10 +357,16 @@ function! s:LLMExitCallback(buffer_nr, temp_file, job_id, status) abort
         unlet! g:llm_job_info
     endif
 
-    " Use the provided buffer_nr for all buffer operations
-    " If status is 0 (success), add a new User Prompt header.
-    " Otherwise (error, stopped, etc.), delete the last empty prompt.
-    if a:status == 0
+    " The Assistant Response will be empty if command failed
+    " immediately. If the response is empty for other reasons, may
+    " as well clean it up as well.
+    call s:DeleteEmptyPrompt(a:buffer_nr)
+
+    " Either last command failed and we deleted response header then
+    " leave last User Prompt at end of buffer. Otherwise, add a new
+    " User Prompt
+    let l:last_header = s:GetLastPromptHeader(a:buffer_nr)
+    if l:last_header.type !=? 'User Prompt'
         call appendbufline(a:buffer_nr, '$', ['', '# >>> User Prompt', ''])
         " Only move cursor if the llmchat buffer is currently active and
 	" were previously at end of buffer.
@@ -368,7 +374,6 @@ function! s:LLMExitCallback(buffer_nr, temp_file, job_id, status) abort
             normal! G
         endif
     else
-        call s:DeleteEmptyPrompt(a:buffer_nr)
     endif
 endfunction
 
