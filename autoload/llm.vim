@@ -22,7 +22,7 @@ function! llm#LLMChat(...) abort range
     " line ranges that are not visual selections are not supported.
     let l:pasted_prompt = []
     " Only paste prompt if not already in the llmchat buffer
-    if bufnr('%') != bufnr('llmchat')
+    if bufnr('%') != bufnr('llmchat.md')
         if (a:firstline == line("'<") && a:lastline == line("'>")) || a:firstline != a:lastline
             let l:pasted_prompt = ['This text is from a vim editing session that reports the filetype as "' . &filetype . '".', '', '```' . &filetype ]
             call extend(l:pasted_prompt, getline(a:firstline, a:lastline))
@@ -138,7 +138,7 @@ function! llm#LLMChat(...) abort range
 endfunction
 
 function! s:LLMChatOpenWin() abort
-    let l:chat_buffer_name = 'llmchat'
+    let l:chat_buffer_name = 'llmchat.md'
     let l:chat_bufnr = bufnr(l:chat_buffer_name)
     let l:is_buffer_visible = v:false
 
