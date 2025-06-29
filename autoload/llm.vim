@@ -171,6 +171,9 @@ function! s:LLMChatOpenWin() abort
         setlocal noswapfile
         setlocal filetype=markdown
         setlocal bufhidden=hide
+	" Helps readability without changing buffer contents
+	setlocal wrap
+	setlocal linebreak
     endif
 endfunction
 
