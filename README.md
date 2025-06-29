@@ -42,8 +42,25 @@ Install using a plugin manager like `vim-plug`:
 
 The following keymaps are active when in the `llmchat` buffer:
 
-*   `<CR>` (Enter): Sends the current prompt in the `llmchat` buffer to the `llm` tool, effectively calling `:LLMChat`.
-*   `<C-c>` (Ctrl-C): Cancels any currently running `llm` job, equivalent to calling `:LLMCancel`.
+*   `<CR>` (Enter): Sends the current prompt in the `llmchat` buffer to the
+    `llm` tool, effectively calling `:LLMChat`.
+*   `<C-c>` (Ctrl-C): Cancels any currently running `llm` job, equivalent to
+    calling `:LLMCancel`.
+*   `[[` and `]]`: By default, these jump between markdown headers. In
+    `llmchat.md`, this means you can jump between `Prompt` and `Response`
+    headers. However, since responses may contain additional markdown headers
+    you may wish to update your `~/.vimrc` with more specific mappings to jump
+    only between `User Prompt` and `Assistant Response` headers, like this
+ example:
+
+    ```vim
+    augroup llmchat_install
+        autocmd!
+        " Jump backward and forward to'# >>>' or '# <<<' marker
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> [[ :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "bsW")<CR>| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> ]] :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "sW")<CR>| endif
+    augroup END
+    ```
 
 ## Commands
 
