@@ -443,3 +443,48 @@ function! llm#LLMComplete() abort range
 \ writer.'
     call llm#LLMFilter(l:prompt)
 endfunction
+
+function! llm#LLMReformatOperator(type) abort
+    " Only proceed if the motion type is 'line'
+    if a:type !=? 'line'
+        echomsg 'llm#LLMRefort: Only line-wise motions are supported.'
+        return
+    endif
+
+    " Save current cursor position and other settings
+    let l:save_cursor_pos = getpos(".")
+    let l:save_selection = &selection
+    let &selection = 'inclusive' " Ensure marks include the last character
+
+    " Get the start and end line numbers from the marks but swap them.
+    " Line wrapping will confuse things if we work forwards.
+    let l:start_line = line("']")
+    let l:end_line = line('.')
+    echom l:start_line l:end_line
+
+    " Start an undo block for the entire operation
+    " This makes all gqq calls part of a single undo step.
+    try
+        undojoin
+    catch /E790/ " E790 is the error for 'undojoin is not allowed after an undo'
+        " If E790 occurs, we need to create a new undo branch.
+        " The simplest way is to make a trivial change and then undo it.
+        " This sequence forces Vim to start a fresh undo point.
+        normal! a
+        normal! <BS>
+        " Now try undojoin again. It should succeed.
+        undojoin
+    endtry
+
+    " Loop through each line in the range
+    for l:lnum in range(l:start_line, l:end_line, -1)
+        " Move to the beginning of the line to ensure gqq operates correctly
+        call cursor(l:lnum, 1)
+        " Execute gqq to reformat the current line.
+        silent! normal! gqq
+    endfor
+
+    " Restore cursor position
+    call setpos('.', l:save_cursor_pos)
+    let &selection = l:save_selection
+endfunction

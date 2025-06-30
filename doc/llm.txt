@@ -46,17 +46,24 @@ The following keymaps are active when in the `llmchat` buffer:
     `:LLMCancel`.
 
 [[ and ]]                                               *[[* *]]*
-    By default, these jump between markdown headers. In `llmchat.md`, this
-    means you can jump between `Prompt` and `Response` headers. However, since
-    responses may contain additional markdown headers, you may wish to update
-    your `~/.vimrc` with more specific mappings to jump only between `User
-    Prompt` and `Assistant Response` headers, like this example:
->
+    By default, `[[` jumps to previous markdown header and `]]` jumps
+    forward to next markdown header. In `llmchat.md`, this means you can jump
+    between `Prompt` and `Response` headers. However, since responses may
+    contain additional markdown headers, you may wish to update
+    your `~/.vimrc` with more specific mappings to jump only between
+    `User Prompt` and `Assistant Response` headers, like this example.
+    Because the response from llm can be hard to read, you can use
+    `[[` to quickly jump to last response header and then use `=]]`
+    to re-ident and line wrap the response.
+
     augroup llmchat_install
         autocmd!
-        " Jump backward and forward to'# >>>' or '# <<<' marker
+        " Jump backward and forward to '# >>>' or '# <<<' marker
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> [[ :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "bsW")<CR>| endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> ]] :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "sW")<CR>| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | setlocal autoindent | endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap = :set operatorfunc=llm#LLMReformatOperator<CR>g@| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | vnoremap <expr> = llm#LLMReformatOperator(visualmode())| endif
     augroup END
 <
 
@@ -129,6 +136,15 @@ llm#LLMRead({prompt})                                   *llm#LLMRead*
     designed for use in expressions, for example, in insert mode using
     `<C-r>=llm#LLMRead('Return a dogs name.  Just the name itself.')` to
     insert the LLM's response directly into the buffer at current location.
+
+llm#LLMReformatOperator({type})                        *llm#LLMReformatOperator*
+
+    Meant to be used to define custom operators to reformat response text
+    for improved readability.
+>
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap = :set operatorfunc=llm#LLMReformatOperator<CR>g@| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | vnoremap <expr> = llm#LLMReformatOperator(visualmode())| endif
+<
 
 ==============================================================================
 4. Usage                                                *llm-usage*

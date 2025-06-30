@@ -51,7 +51,9 @@ The following keymaps are active when in the `llmchat` buffer:
     headers. However, since responses may contain additional markdown headers
     you may wish to update your `~/.vimrc` with more specific mappings to jump
     only between `User Prompt` and `Assistant Response` headers, like this
- example:
+    example.  Because the response from llm can be hard to read, you
+    can use '[[' to quickly jump to last response header and then use
+    '=]]' to re-indent and line wrap the response.
 
     ```vim
     augroup llmchat_install
@@ -59,6 +61,9 @@ The following keymaps are active when in the `llmchat` buffer:
         " Jump backward and forward to'# >>>' or '# <<<' marker
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> [[ :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "bsW")<CR>| endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> ]] :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "sW")<CR>| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | setlocal autoindent | endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap = :set operatorfunc=llm#LLMReformatOperator<CR>g@| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | vnoremap <expr> = llm#LLMReformatOperator(visualmode())| endif
     augroup END
     ```
 
