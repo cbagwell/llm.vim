@@ -566,7 +566,6 @@ function! llm#LLMReformatOperator(type) abort
     " Line wrapping will confuse things if we work forwards.
     let l:start_line = line("']")
     let l:end_line = line('.')
-    echom l:start_line l:end_line
 
     " Start an undo block for the entire operation
     " This makes all gqq calls part of a single undo step.

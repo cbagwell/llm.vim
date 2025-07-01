@@ -62,8 +62,8 @@ The following keymaps are active when in the `llmchat` buffer:
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> [[ :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "bsW")<CR>| endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> ]] :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "sW")<CR>| endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | setlocal autoindent | endif
-        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap = :set operatorfunc=llm#LLMReformatOperator<CR>g@| endif
-        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | vnoremap <expr> = llm#LLMReformatOperator(visualmode())| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> = :set operatorfunc=llm#LLMReformatOperator<CR>g@| endif
+        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | vnoremap <silent><buffer> <expr> = llm#LLMReformatOperator(visualmode())| endif
     augroup END
 <
 
