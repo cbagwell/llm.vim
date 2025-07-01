@@ -239,6 +239,20 @@ to help guide the conversation.
     let g:llm_spinner_chars = ['-', '\\', '|', '/']
     ```
 
+  * `g:llm_stream_reformat_response` (Default: `v:true`)
+    This variable controls whether streamed Assistant responses are
+    automatically reformatted using `gqq` as they are appended to the
+    `llmchat` buffer. When set to `v:true`, each line is rewrapped and
+    indented. When set to `v:false`, no automatic reformatting occurs during
+    streaming, and you can manually reformat sections using the
+    `llm#LLMReformatOperator` (e.g., `gq` or `=` with appropriate keymaps).
+    To disable it, add the following to your `~/.vimrc` or
+    `~/.config/nvim/init.vim`:
+
+    ```vim
+    let g:llm_stream_reformat_response = v:false
+    ```
+
 
 ## Notes
 

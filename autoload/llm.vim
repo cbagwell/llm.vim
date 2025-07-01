@@ -7,15 +7,19 @@ let g:llm_timeout_seconds = get(g:, 'llm_timeout_seconds', 300)
 let g:llm_command = get(g:, 'llm_command', 'llm')
 " Enable/disable reporting of token usage
 let g:llm_enable_usage = get(g:, 'llm_enable_usage', v:true)
-" Configure how the llmchat buffer is opened: 'vertical', 'horizontal', or 'current'
+" Configure how the llmchat buffer is opened: 'vertical', 'horizontal',
+" or 'current'
 let g:llm_chat_new_behavior = get(g:, 'llm_chat_new_behavior', 'vertical')
 " Default llm model to use (e.g., 'gpt-4o', 'claude-3.5-sonnet').
 " An empty string means no '-m' option is added.
 let g:llm_model = get(g:, 'llm_model', '')
-" Optional llm model temperature. An empty string means no '-o temperature' option is added.
+" Optional llm model temperature. An empty string means no '-o temperature'
+" option is added.
 let g:llm_model_temperature = get(g:, 'llm_model_temperature', '')
 " Characters to use for the spinner
 let g:llm_spinner_chars = get(g:, 'llm_spinner_chars', ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
+" Enable/disable automatic reformatting of streamed assistant responses (gqq)
+let g:llm_stream_reformat_response = get(g:, 'llm_stream_reformat_response', v:true)
 
 function! llm#LLMChat(...) abort range
     " Store off any visual selection/range lines up front. Single
@@ -209,7 +213,7 @@ function! s:DeleteEmptyPrompt(buffer_nr) abort
     endif
 endfunction
 
-" Helper function to find the last prompt header and its line number
+" Find the last prompt header and its line number
 function! s:GetLastPromptHeader(buffer_nr) abort
     let l:lines = getbufline(a:buffer_nr, 1, '$')
     let l:last_header_type = ''
@@ -235,33 +239,94 @@ function! s:GetLastPromptHeader(buffer_nr) abort
     return {'type': l:last_header_type, 'line_nr': l:last_header_line_nr}
 endfunction
 
+" Ccheck if a given line number in a buffer is inside a markdown code block
+" within an Assientant Response.
+function! s:IsInCodeBlock(buffer_nr, line_nr) abort
+    let l:last_header = s:GetLastPromptHeader(a:buffer_nr)
+    let l:start_line = l:last_header.line_nr
+    if l:start_line == -1
+	let l:start_line = 1
+    endif
+    let l:lines = getbufline(a:buffer_nr, l:start_line, a:line_nr)
+
+    let l:fence_count = 0
+    for l:line_content in l:lines
+	" Match '```', '  ```', '```.vim`, and similar valid blocks.
+        if l:line_content =~# '^\s*```\s*\%(.\{-}\)\?$'
+            let l:fence_count += 1
+        endif
+    endfor
+    " If the number of fences encountered so far is odd, we are inside a
+    " code block.
+    return (l:fence_count % 2 == 1)
+endfunction
+
 function! s:LLMStreamCallback(buffer_nr, channel, message) abort
-    let l:is_at_bottom = (line('.') == line('$'))
+    let l:current_winid = win_getid() " Save current window ID
+    let l:target_winid = -1
+    " Track if cursor was at bottom of target buffer
+    let l:is_at_bottom_target_buf = v:false
+    " Find a window displaying the target buffer
+    let l:win_ids_for_buffer = win_findbuf(a:buffer_nr)
+    if !empty(l:win_ids_for_buffer)
+        let l:target_winid = l:win_ids_for_buffer[0]
+        " Temporarily switch to the target window to get cursor position and
+	" operate
+        call win_gotoid(l:target_winid)
+        let l:is_at_bottom_target_buf = (line('.') == line('$'))
+    endif
 
     " If spinner is active, remove it before appending new text
     if exists('g:llm_job_info') && g:llm_job_info.spinner_active
-        " Check if the last line is the spinner
-        let l:last_line = getbufline(a:buffer_nr, '$')[0]
-        if !empty(l:last_line) && index(g:llm_spinner_chars, l:last_line) != -1
+        " Check if the last line of the buffer (a:buffer_nr) is the spinner
+        let l:last_line_content = getbufline(a:buffer_nr, '$')[0]
+        if !empty(l:last_line_content) && index(g:llm_spinner_chars, l:last_line_content) != -1
             call deletebufline(a:buffer_nr, '$')
         endif
         let g:llm_job_info.spinner_active = v:false
     endif
 
-    " Append to the specific buffer
-    call appendbufline(a:buffer_nr, '$', split(a:message, '\n'))
+    let l:lines_to_append = split(a:message, '\n')
+    " Save cursor position in the target window (if we switched to it)
+    let l:saved_cursor_pos = getpos('.')
+    for l:line_text in l:lines_to_append
+        " Append the new line
+        call appendbufline(a:buffer_nr, '$', [l:line_text])
+
+        " Determine if reformatting should occur
+        if g:llm_stream_reformat_response && l:target_winid != -1
+            " Before reformatting, check if the current line is inside a code
+            " block. Cursor must be on the line just appended for gqq to work
+            call cursor(line('$'), 1)
+            if !s:IsInCodeBlock(a:buffer_nr, line('$'))
+                silent! normal! gqq
+            endif
+        endif
+    endfor
 
     " Update last output time
     if exists('g:llm_job_info')
         let g:llm_job_info.last_output_time = reltime()
     endif
 
-    " If the llmchat buffer is currently active in the current window,
-    " and the cursor was at the end, move it to the new end.
-    if bufnr('%') == a:buffer_nr && l:is_at_bottom
-	normal! G
-	redraw
+    " Restore cursor position in the target window
+    if l:target_winid != -1
+        call setpos('.', l:saved_cursor_pos)
+        " If cursor was at the bottom, move to the new end
+        if l:is_at_bottom_target_buf
+            normal! G
+        endif
     endif
+
+    " Restore original window if we temporarily switched
+    if l:target_winid != -1 && l:current_winid != l:target_winid
+        call win_gotoid(l:current_winid)
+    endif
+
+    " Redraw the screen to show updates. If the llmchat buffer was current,
+    " or if we switched to it and then back, a redraw helps ensure visual
+    " consistency.
+    redraw
 endfunction
 
 function! s:LLMErrorCallback(buffer_nr, channel, message) abort
@@ -452,7 +517,7 @@ function! llm#LLMReformatOperator(type) abort
     endif
 
     " Save current cursor position and other settings
-    let l:save_cursor_pos = getpos(".")
+    let l:save_cursor_pos = getpos('.')
     let l:save_selection = &selection
     let &selection = 'inclusive' " Ensure marks include the last character
 
