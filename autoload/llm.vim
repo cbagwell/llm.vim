@@ -551,9 +551,9 @@ function! llm#LLMComplete() abort range
 endfunction
 
 function! llm#LLMReformatOperator(type) abort
-    " Only proceed if the motion type is 'line'
+-    " Only proceed if the motion type is 'line'
     if a:type !=? 'line'
-        echom 'llm#LLMRefort: Only line-wise motions are supported.'
+        echom 'llm#LLMReformatOperator: Only line-wise motions are supported.'
         return
     endif
 
