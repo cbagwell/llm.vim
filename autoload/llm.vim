@@ -20,6 +20,8 @@ let g:llm_model_temperature = get(g:, 'llm_model_temperature', '')
 let g:llm_spinner_chars = get(g:, 'llm_spinner_chars', ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
 " Enable/disable automatic reformatting of streamed assistant responses (gqq)
 let g:llm_stream_reformat_response = get(g:, 'llm_stream_reformat_response', v:true)
+" Enable/disable popup notifications
+let g:llm_popup_notifications = get(g:, 'llm_popup_notifications', v:true)
 
 function! llm#LLMChat(...) abort range
     " Store off any visual selection/range lines up front. Single
@@ -332,11 +334,50 @@ endfunction
 function! s:LLMErrorCallback(buffer_nr, channel, message) abort
     if a:message =~# '^Token usage:'
         " Strip off some unwanted text at end
-        echom substitute(a:message, 'output.*', 'output', '')
+        call s:LLMNotify(substitute(a:message, 'output.*', 'output', ''))
     else
-        echom 'Error from job: ' . a:message
+        call s:LLMError('Error from job: ' . a:message)
     endif
 endfunction
+
+function! s:LLMNotify(message) abort
+    if has('popupwin') && g:llm_popup_notifications
+	call popup_create(a:message, {
+		    \ 'line': 1,
+		    \ 'col': &columns,
+		    \ 'pos': 'topright',
+		    \ 'time': 3000,
+		    \ 'tabpage': -1,
+		    \ 'zindex': 300,
+		    \ 'drag': 1,
+		    \ 'border': [],
+		    \ 'close': 'click',
+		    \ 'padding': [0,1,0,1],
+		    \ })
+    else
+        echom a:message
+    endif
+endfunction
+
+function! s:LLMError(message) abort
+    " Always echom so it can be easily read lataer.
+    echom a:message
+    if has('popupwin') && g:llm_popup_notifications
+	call popup_create(a:message, {
+		    \ 'line': 1,
+		    \ 'col': &columns,
+		    \ 'pos': 'topright',
+		    \ 'time': 3000,
+		    \ 'tabpage': -1,
+		    \ 'zindex': 300,
+		    \ 'drag': 1,
+		    \ 'border': [],
+		    \ 'close': 'click',
+		    \ 'padding': [0,1,0,1],
+		    \ })
+    endif
+endfunction
+
 
 function! llm#LLMIsRunning() abort
     return exists('g:llm_job_info') && job_status(g:llm_job_info.id) ==? 'run'
@@ -344,11 +385,11 @@ endfunction
 
 function! llm#LLMCancel() abort
     if llm#LLMIsRunning()
-        echom 'Cancelling llm job...'
+        call s:LLMNotify('Cancelling llm job...')
         call job_stop(g:llm_job_info.id)
         " LLMExitCallback will be triggered by job_stop and handle cleanup
     else
-        echom 'No llm job is currently running.'
+        call s:LLMNotify('No llm job is currently running.')
     endif
 endfunction
 
@@ -393,7 +434,7 @@ function! s:LLMTimeoutCallback(job_id, buffer_nr, timer_id) abort
 
         " Existing timeout logic
         if g:llm_job_info.invoke_count >= g:llm_timeout_seconds
-            echom 'LLM job timed out after ' . g:llm_timeout_seconds . ' seconds. Cancelling...'
+            call s:LLMError('LLM job timed out after ' . g:llm_timeout_seconds . ' seconds. Cancelling...')
             call llm#LLMCancel()
         endif
     endif
@@ -457,7 +498,7 @@ function! llm#LLMRead(prompt) abort
 
     let l:output = system(l:command)
     if v:shell_error
-        echom 'llm command failed.'
+        call s:LLMError('llm command failed.')
 	return ''
     else
 	return trim(l:output)
@@ -485,7 +526,7 @@ function! llm#LLMFilter(prompt) abort range
     execute l:filter_command
     if v:shell_error
         undo
-        echom 'llm command failed.'
+        call s:LLMError('llm command failed.')
     endif
 endfunction
 
@@ -512,7 +553,7 @@ endfunction
 function! llm#LLMReformatOperator(type) abort
     " Only proceed if the motion type is 'line'
     if a:type !=? 'line'
-        echomsg 'llm#LLMRefort: Only line-wise motions are supported.'
+        echom 'llm#LLMRefort: Only line-wise motions are supported.'
         return
     endif
 

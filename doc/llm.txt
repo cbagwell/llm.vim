@@ -282,6 +282,17 @@ Continue a conversation:
         let g:llm_spinner_chars = ['-', '\\', '|', '/']
 <
 
+`g:llm_popup_notifications`                             *g:llm_popup_notifications*
+    Default: `v:true`
+    This variable controls whether popup notifications are displayed for `llm`
+    status. Set to `v:false` to disable these popups.
+
+    Example:
+    >
+        let g:llm_popup_notifications = v:false
+<
+    Disables popup notifications.
+
 `g:llm_stream_reformat_response`                        *g:llm_stream_reformat_response*
     Default: `v:true`
     This variable controls whether streamed Assistant responses are

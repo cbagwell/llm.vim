@@ -239,6 +239,16 @@ to help guide the conversation.
     let g:llm_spinner_chars = ['-', '\\', '|', '/']
     ```
 
+  * `g:llm_popup_notifications` (Default: `v:true`)
+    This variable controls whether popup notifications are displayed for `llm`
+    status. Set to `v:false` to disable these popups.
+    To disable it, add the following to your `~/.vimrc` or
+    `~/.config/nvim/init.vim`:
+
+    ```vim
+    let g:llm_popup_notifications = v:false
+    ```
+
   * `g:llm_stream_reformat_response` (Default: `v:true`)
     This variable controls whether streamed Assistant responses are
     automatically reformatted using `gqq` as they are appended to the
