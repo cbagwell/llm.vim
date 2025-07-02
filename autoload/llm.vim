@@ -551,21 +551,20 @@ function! llm#LLMComplete() abort range
 endfunction
 
 function! llm#LLMReformatOperator(type) abort
--    " Only proceed if the motion type is 'line'
-    if a:type !=? 'line'
-        echom 'llm#LLMReformatOperator: Only line-wise motions are supported.'
-        return
-    endif
-
     " Save current cursor position and other settings
     let l:save_cursor_pos = getpos('.')
     let l:save_selection = &selection
     let &selection = 'inclusive' " Ensure marks include the last character
 
-    " Get the start and end line numbers from the marks but swap them.
-    " Line wrapping will confuse things if we work forwards.
-    let l:start_line = line("']")
-    let l:end_line = line('.')
+    " Get the start and end line numbers from the marks. Regardless
+    " of type, treat them all like line since that what gq does.
+    if a:type ==# 'line' || a:type ==# 'char' || a:type ==# 'block'
+	let l:start_line = line("'[")
+	let l:end_line = line("']")
+    else " Everything else must be visual
+	let l:start_line = line("'<")
+	let l:end_line = line("'>")
+    endif
 
     " Start an undo block for the entire operation
     " This makes all gqq calls part of a single undo step.
@@ -582,7 +581,7 @@ function! llm#LLMReformatOperator(type) abort
     endtry
 
     " Loop through each line in the range
-    for l:lnum in range(l:start_line, l:end_line, -1)
+    for l:lnum in range(l:end_line, l:start_line, -1)
         " Move to the beginning of the line to ensure gqq operates correctly
         call cursor(l:lnum, 1)
         " Execute gqq to reformat the current line.
