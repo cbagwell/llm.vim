@@ -486,70 +486,6 @@ function! s:LLMExitCallback(buffer_nr, temp_file, job_id, status) abort
     endif
 endfunction
 
-function! llm#LLMRead(prompt) abort
-    let l:command = g:llm_command
-    if !empty(g:llm_model)
-        let l:command .= ' -m ' . g:llm_model
-    endif
-    if !empty(g:llm_model_temperature)
-        let l:command .= ' -o temperature ' . g:llm_model_temperature
-    endif
-    let l:command .= ' ' . shellescape(a:prompt)
-
-    let l:output = system(l:command)
-    if v:shell_error
-        call s:LLMError('llm command failed.')
-	return ''
-    else
-	return trim(l:output)
-    endif
-endfunction
-
-function! llm#LLMFilter(prompt) abort range
-    let l:command = g:llm_command
-    if !empty(g:llm_model)
-        let l:command .= ' -m ' . g:llm_model
-    endif
-    if !empty(g:llm_model_temperature)
-        let l:command .= ' -o temperature ' . g:llm_model_temperature
-    endif
-    let l:command .= ' ' . shellescape(a:prompt)
-
-    " llm returns an unwanted line always. Deal with BSD vs Linux tool
-    " limitations.
-    if has('macunix')
-        let l:command .= ' | sed "$d"'
-    else
-        let l:command .= ' | head -n -1'
-    endif
-    let l:filter_command = printf('%d,%d!%s', a:firstline, a:lastline, l:command)
-    execute l:filter_command
-    if v:shell_error
-        undo
-        call s:LLMError('llm command failed.')
-    endif
-endfunction
-
-function! llm#LLMFix() abort range
-    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
-    let l:prompt .= '
-\ Fix the syntax of this code. Respond with the code including any fixes.
-\ Do not alter the functional aspect of the code, but simply fix it and
-\ respond with all of it. Do not respond in a markdown code block.'
-    call llm#LLMFilter(l:prompt)
-endfunction
-
-function! llm#LLMComplete() abort range
-    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
-    let l:prompt .= '
-\ Finish this input. Respond with the text including the completion text.
-\ For example: If the user sent "The sky is", you would reply
-\ "The sky is blue.". If the input is code, write quality code that is
-\ syntactically correct. If the input is text, respond as a wise, succinct
-\ writer.'
-    call llm#LLMFilter(l:prompt)
-endfunction
-
 function! llm#LLMReformatOperator(type) abort
     " Save current cursor position and other settings
     let l:save_cursor_pos = getpos('.')
@@ -591,4 +527,86 @@ function! llm#LLMReformatOperator(type) abort
     " Restore cursor position
     call setpos('.', l:save_cursor_pos)
     let &selection = l:save_selection
+endfunction
+
+" Reads the response to prompt from llm and inserts into current buffer.
+" content of the current line/visual selection/range using llm (similar
+" to using the built in vim read command with
+" `r !llm "Write a poem about LLM's"`).
+function! llm#LLMRead(prompt) abort
+    let l:command = g:llm_command
+    if !empty(g:llm_model)
+        let l:command .= ' -m ' . g:llm_model
+    endif
+    if !empty(g:llm_model_temperature)
+        let l:command .= ' -o temperature ' . g:llm_model_temperature
+    endif
+    let l:command .= ' ' . shellescape(a:prompt)
+
+    let l:output = system(l:command)
+    if v:shell_error
+        call s:LLMError('llm command failed.')
+	return ''
+    else
+	return trim(l:output)
+    endif
+endfunction
+
+" Filters the content of the current line/visual selection/range using llm
+" based on the provided prompt (similar to using the built in vim filter
+" with `%!llm "Fix grammer"`). It is let to your prompt phrase to decide
+" if original text is return or replaced.
+function! llm#LLMFilter(prompt) abort range
+    let l:command = g:llm_command
+    if !empty(g:llm_model)
+        let l:command .= ' -m ' . g:llm_model
+    endif
+    if !empty(g:llm_model_temperature)
+        let l:command .= ' -o temperature ' . g:llm_model_temperature
+    endif
+    let l:command .= ' ' . shellescape(a:prompt)
+
+    " llm returns an unwanted line always. Deal with BSD vs Linux tool
+    " limitations.
+    if has('macunix')
+        let l:command .= ' | sed "$d"'
+    else
+        let l:command .= ' | head -n -1'
+    endif
+    let l:filter_command = printf('%d,%d!%s', a:firstline, a:lastline, l:command)
+    execute l:filter_command
+    if v:shell_error
+        undo
+        call s:LLMError('llm command failed.')
+    endif
+endfunction
+
+function! llm#LLMDoc() abort range
+    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+    let l:prompt .= '
+\ Explain the purpose of this function like docstring but using most
+\ appropriate format for this code. Respond with the code including any docs.
+\ Do not alter the functional aspect of the code, but simply document it and
+\ respond with all of it. Do not respond in a markdown code block.'
+    call llm#LLMFilter(l:prompt)
+endfunction
+
+function! llm#LLMFix() abort range
+    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+    let l:prompt .= '
+\ Fix the syntax of this code. Respond with the code including any fixes.
+\ Do not alter the functional aspect of the code, but simply fix it and
+\ respond with all of it. Do not respond in a markdown code block.'
+    call llm#LLMFilter(l:prompt)
+endfunction
+
+function! llm#LLMComplete() abort range
+    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+    let l:prompt .= '
+\ Finish this input. Respond with the text including the completion text.
+\ For example: If the user sent "The sky is", you would reply
+\ "The sky is blue.". If the input is code, write quality code that is
+\ syntactically correct. If the input is text, respond as a wise, succinct
+\ writer.'
+    call llm#LLMFilter(l:prompt)
 endfunction

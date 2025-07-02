@@ -76,11 +76,14 @@ The following keymaps are active when in the `llmchat` buffer:
     * Prompt can be passed in or editted within `llmchat` buffer.
     * Optionally paste in context using visual selection or ranges.
   * **:LLMRead**
-    * Uses `llm` to read a prompt and add the response to the next line in
-      the current buffer.
+    * Uses `llm` to send a prompt and add the response to the next line in
+      the current buffer (similar to `:r !llm "Write a poem about LLMS"`).
       The function llm#LLMRead(prompt) can also be used to return a
       string. While in insert mode, you can use this syntax:
      `<C-r>=llm#LLMRead('Return a dogs name.  Just the name itself.')`
+  * **:LLMDoc**
+    * Uses `llm` to generate code documentation for the current range/visual
+      selection. For example, visual select a function to document.
   * **:LLMCancel**
     * Cancels any currently running `llm` job. If no job is running, it will
       display a message.
@@ -95,9 +98,12 @@ The following keymaps are active when in the `llmchat` buffer:
       description or to complete incomplete sentences/paragraphs.
   * **:LLMFilter**
     * Sends the current visual selection/range/line to `llm` to filter or
-      transform it. The prompt given to `:LLMFilter` guides the transformation.
+      transform it (similar to `%!llm "Fix grammer"`). The prompt given
+      to `:LLMFilter` guides the transformation.
       For example: `:'<,'>LLMFilter Improve this text. Return only the
-      original text with improvements.`
+      original text with improvements.`  If modifying texting text then phrases
+      such as "return original text with modifictions" and
+      "do not return code blocks" can help.
 
 ## Usage
 
