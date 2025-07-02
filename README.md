@@ -85,8 +85,7 @@ The following keymaps are active when in the `llmchat` buffer:
     * Uses `llm` to generate code documentation for the current range/visual
       selection. For example, visual select a function to document.
   * **:LLMCancel**
-    * Cancels any currently running `llm` job. If no job is running, it will
-      display a message.
+    * Cancels any currently running `llm` job.
   * **:LLMIsRunning**
     * Echoes "1" if an `llm` job is currently running, "0" otherwise.
   * **:LLMFix**
@@ -273,8 +272,6 @@ to help guide the conversation.
 
 ## Notes
 
-* If an `llm` job is already running when `:LLMChat` is called, the previous
-  job will be cancelled before a new one starts.
 * Error messages from the `llm` command will be displayed using `echom`.
 * Fenced code in `llmchat` can be improved by setting
   `let g:markdown_fenced_languages = ['c', 'bash=sh', 'python]` as well

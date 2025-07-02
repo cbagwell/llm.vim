@@ -94,8 +94,7 @@ The following keymaps are active when in the `llmchat` buffer:
 
                                                         *LLMCancel*
 :LLMCancel
-    Cancels any currently running `llm` job. If no job is running, it will
-    display a message.
+    Cancels any currently running `llm` job.
 
                                                         *LLMIsRunning*
 :LLMIsRunning
@@ -107,6 +106,7 @@ The following keymaps are active when in the `llmchat` buffer:
 :{Visual}LLMFix
     Sends the current visual selection/range/line to LLM to fix any
     syntactical errors and replaces with the results.
+
                                                         *LLMFilter*
 :LLMFilter
 :{range}LLMFilter
@@ -323,8 +323,6 @@ Continue a conversation:
 ==============================================================================
 6. Notes                                                *llm-notes*
 
-- If an `llm` job is already running when `:LLMChat` is called, the
-  previous job will be cancelled before a new one starts.
 - Error messages from the `llm` command will be displayed using `echom`.
 - Fenced code in `llmchat` can be improved by setting
   `let g:markdown_fenced_languages = ['c', 'bash=sh', 'python]` as well

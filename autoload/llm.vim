@@ -24,6 +24,14 @@ let g:llm_stream_reformat_response = get(g:, 'llm_stream_reformat_response', v:t
 let g:llm_popup_notifications = get(g:, 'llm_popup_notifications', v:true)
 
 function! llm#LLMChat(...) abort range
+
+    " If a job is already running then return. User must manually
+    " kill before new command can be sent.
+    if llm#LLMIsRunning()
+        call s:LLMError('llm running. cancel before running new commands')
+	return
+    endif
+
     " Store off any visual selection/range lines up front. Single
     " line ranges that are not visual selections are not supported.
     let l:pasted_prompt = []
@@ -88,11 +96,6 @@ function! llm#LLMChat(...) abort range
     endif
 
     if l:should_call_llm
-        " If a job is already running, cancel it first
-        if llm#LLMIsRunning()
-            call llm#LLMCancel()
-        endif
-
         let l:lines_to_send = getbufline(l:llmchat_buffer_nr, 1, '$')
 
         " Add Assistant Response header before sending the prompt
