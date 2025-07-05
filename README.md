@@ -61,7 +61,6 @@ The following keymaps are active when in the `llmchat` buffer:
         " Jump backward and forward to'# >>>' or '# <<<' marker
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> [[ :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "bsW")<CR>| endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> ]] :<C-U>call search('^#\\s\\+\\(>>>\\\\|<<<\).*', "sW")<CR>| endif
-        autocmd FileType markdown if expand('%:t') == 'llmchat.md' | setlocal autoindent | endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | nnoremap <silent><buffer> = :set operatorfunc=llm#LLMReformatOperator<CR>g@| endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | onoremap <silent><buffer> <expr> = v:operator ==# '=' ? ':call llm#LLMReformatOperator("line")<CR>' : 'g@' | endif
         autocmd FileType markdown if expand('%:t') == 'llmchat.md' | vnoremap <silent><buffer>  = :<C-U>call llm#LLMReformatOperator(visualmode())<CR>| endif
