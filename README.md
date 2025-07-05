@@ -91,9 +91,10 @@ The following keymaps are active when in the `llmchat` buffer:
     * Sends the current visual selection/range/ling to `llm` to fix any
       syntatical errors and replaces with the results.
   * **:LLMComplete**
-    * Sends the current visual selection/range/line to `llm` to complete it.
-      Can be used both for implementing a function based on comment
-      description or to complete incomplete sentences/paragraphs.
+    * Sends the current visual selection/range/line or the optional arguments
+      to `llm` to complete it. Can be used both for implementing a function
+      based on comment description or to complete incomplete
+      sentences/paragraphs.
   * **:LLMFilter**
     * Sends the current visual selection/range/line to `llm` to filter or
       transform it (similar to `%!llm "Fix grammer"`). The prompt given

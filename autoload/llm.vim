@@ -553,9 +553,9 @@ function! llm#LLMRead(prompt) abort
     let l:output = system(l:command)
     if v:shell_error
         call s:LLMError('llm command failed.')
-	return ''
+	return []
     else
-	return trim(l:output)
+	return split(trim(l:output), '\n')
     endif
 endfunction
 
@@ -607,13 +607,25 @@ function! llm#LLMFix() abort range
     call llm#LLMFilter(l:prompt)
 endfunction
 
-function! llm#LLMComplete() abort range
-    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
-    let l:prompt .= '
+function! llm#LLMComplete(prompt) abort range
+    if !empty(a:prompt)
+        let l:prompt = 'You will be provided a request from a vim editing session that reports the file type as "' . &filetype . '".'
+        let l:prompt .= '
+\ Finish this input. Respond with only the completion text.
+\ For example: If the user sent "The sky is", you would reply
+\ "The sky is blue.". If the input is code, write quality code that is
+\ syntactically correct. If the input is text, respond as a wise, succinct
+\ writer. Do not response in a markdown code block.'
+	let l:prompt .= 'Request: ' . a:prompt
+        call append(line('.'), llm#LLMRead(l:prompt))
+    else
+        let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+        let l:prompt .= '
 \ Finish this input. Respond with the text including the completion text.
 \ For example: If the user sent "The sky is", you would reply
 \ "The sky is blue.". If the input is code, write quality code that is
 \ syntactically correct. If the input is text, respond as a wise, succinct
 \ writer. Do not response in a markdown code block.'
-    call llm#LLMFilter(l:prompt)
+        call llm#LLMFilter(l:prompt)
+    endif
 endfunction

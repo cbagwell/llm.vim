@@ -6,6 +6,6 @@ command! LLMIsRunning echo llm#LLMIsRunning()
 
 command! -range=% LLMDoc call llm#LLMDoc()
 command! -range=% LLMFix call llm#LLMFix()
-command! -range=% LLMComplete call llm#LLMComplete()
+command! -range -nargs=* LLMComplete <line1>,<line2>call llm#LLMComplete(<q-args>)
 command! -range=% -nargs=+ LLMFilter call llm#LLMFilter(<q-args>)
 command! -nargs=+ LLMRead call append(line('.'), llm#LLMRead(expand("<args>")))

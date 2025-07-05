@@ -122,9 +122,9 @@ The following keymaps are active when in the `llmchat` buffer:
 :LLMComplete
 :{range}LLMComplete
 :{Visual}LLMComplete
-    Sends the current visual selection/range/line to `llm` to complete it.
-    Can be used both for implement a function based on comment description
-    or to complete incomplete sentences/paragraphs.
+    Sends the current visual selection/range/line or optional arguments to
+    `llm` to complete it. Can be used both for implement a function based on
+    comment description or to complete incomplete sentences/paragraphs.
 
                                                         *LLMRead*
 :LLMRead {prompt}
