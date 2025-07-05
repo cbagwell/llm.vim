@@ -23,6 +23,17 @@ let g:llm_stream_reformat_response = get(g:, 'llm_stream_reformat_response', v:t
 " Enable/disable popup notifications
 let g:llm_popup_notifications = get(g:, 'llm_popup_notifications', v:true)
 
+function! s:BuildLLMCommand() abort
+    let l:command = g:llm_command
+    if !empty(g:llm_model)
+        let l:command .= ' -m ' . g:llm_model
+    endif
+    if !empty(g:llm_model_temperature)
+        let l:command .= ' -o temperature ' . g:llm_model_temperature
+    endif
+    return l:command
+endfunction
+
 function! llm#LLMChat(...) abort range
 
     " If a job is already running then return. User must manually
@@ -113,16 +124,9 @@ function! llm#LLMChat(...) abort range
         " Using temp file to avoid command line length limits.
         let l:current_temp_context_file = tempname()
         call writefile(l:lines_to_send, l:current_temp_context_file)
-        let l:llm_cmd = 'cat ' . l:current_temp_context_file . ' | ' . g:llm_command
-        if !empty(g:llm_model)
-            let l:llm_cmd .= ' -m ' . g:llm_model
-        endif
+        let l:llm_cmd = 'cat ' . l:current_temp_context_file . ' | ' . s:BuildLLMCommand()
         if g:llm_enable_usage
             let l:llm_cmd .= ' -u'
-        endif
-        if !empty(g:llm_model_temperature)
-            let l:llm_cmd .= ' -o temperature ' . g:llm_model_temperature
-        endif
         "let l:llm_cmd = 'echo this is a fixed response.'
         "let l:llm_cmd = 'while true; do sleep 5; echo sleeping; done'
         let l:cmd = ['/bin/sh', '-c', l:llm_cmd]
@@ -545,13 +549,7 @@ endfunction
 " to using the built in vim read command with
 " `r !llm "Write a poem about LLM's"`).
 function! llm#LLMRead(prompt) abort
-    let l:command = g:llm_command
-    if !empty(g:llm_model)
-        let l:command .= ' -m ' . g:llm_model
-    endif
-    if !empty(g:llm_model_temperature)
-        let l:command .= ' -o temperature ' . g:llm_model_temperature
-    endif
+    let l:command = s:BuildLLMCommand()
     let l:command .= ' ' . shellescape(a:prompt)
 
     let l:output = system(l:command)
@@ -563,18 +561,13 @@ function! llm#LLMRead(prompt) abort
     endif
 endfunction
 
+
 " Filters the content of the current line/visual selection/range using llm
 " based on the provided prompt (similar to using the built in vim filter
 " with `%!llm "Fix grammer"`). It is let to your prompt phrase to decide
 " if original text is return or replaced.
 function! llm#LLMFilter(prompt) abort range
-    let l:command = g:llm_command
-    if !empty(g:llm_model)
-        let l:command .= ' -m ' . g:llm_model
-    endif
-    if !empty(g:llm_model_temperature)
-        let l:command .= ' -o temperature ' . g:llm_model_temperature
-    endif
+    let l:command = s:BuildLLMCommand()
     let l:command .= ' ' . shellescape(a:prompt)
 
     " llm returns an unwanted line always. Deal with BSD vs Linux tool
