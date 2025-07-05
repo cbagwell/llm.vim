@@ -550,7 +550,7 @@ endfunction
 " `r !llm "Write a poem about LLM's"`).
 function! llm#LLMRead(prompt) abort
     let l:command = s:BuildLLMCommand()
-    let l:command .= ' ' . shellescape(a:prompt)
+    let l:command .= ' ' . shellescape(s:FilterBasePrompt() . a:prompt)
 
     let l:output = system(l:command)
     if v:shell_error
@@ -561,6 +561,13 @@ function! llm#LLMRead(prompt) abort
     endif
 endfunction
 
+function! s:FilterBasePrompt()
+    let l:prompt = 'Do not respond in a markdown code block unless requested to. '
+    if !empty(&filetype)
+	let l:prompt .= 'You will be provided text from a vim buffer that reports the file type as "' . &filetype . '". '
+    endif
+    return l:prompt
+endfunction
 
 " Filters the content of the current line/visual selection/range using llm
 " based on the provided prompt (similar to using the built in vim filter
@@ -568,7 +575,7 @@ endfunction
 " if original text is return or replaced.
 function! llm#LLMFilter(prompt) abort range
     let l:command = s:BuildLLMCommand()
-    let l:command .= ' ' . shellescape(a:prompt)
+    let l:command .= ' ' . shellescape(s:FilterBasePrompt() . a:prompt)
 
     " llm returns an unwanted line always. Deal with BSD vs Linux tool
     " limitations.
@@ -586,64 +593,40 @@ function! llm#LLMFilter(prompt) abort range
 endfunction
 
 function! llm#LLMDoc() abort range
-    if !empty(&filetype)
-	let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
-    else
-	let l:prompt = ''
-    endif
-
-    let l:prompt .= '
+    let l:prompt = '
 \ Create documentation that describes the purpose of this function similar
-\ to docstring for python but using an appropriate format for this code.
-\ Respond with the docs followed by the original code.
-\ Do not modify or add comments to any of the original code.
-\ Do not respond in a markdown code block.'
+\ to docstring for python but using an appropriate format for this language.
+\ Respond with the docs followed by the original unmodified code.
+\ Do not create new code or add/modify comments in the original code.'
     call llm#LLMFilter(l:prompt)
 endfunction
 
 function! llm#LLMFix() abort range
-    if !empty(&filetype)
-	let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
-    else
-	let l:prompt = ''
-    endif
-
-    let l:prompt .= '
+    let l:prompt = '
 \ Fix the syntax of this code. Respond with the code including any fixes.
 \ Do not alter the functional aspect of the code, but simply
-\ fix and respond with all of it. Do not respond in a markdown code block.
-\ Do not modify indentation or whitespace when given a single line.'
+\ fix and respond with all of it. Retain all whitespace. For example,
+\ if provided `  return` then respond `  return;` and not `return;`.'
     call llm#LLMFilter(l:prompt)
 endfunction
 
 function! llm#LLMComplete(prompt) abort range
     if !empty(a:prompt)
-	if !empty(&filetype)
-	    let l:prompt = 'You will be provided a request from a vim editing session that reports the file type as "' . &filetype . '".'
-	else
-	    let l:prompt = ''
-	endif
-
-	let l:prompt .= '
+	let l:prompt = '
 \ Finish this input. Respond with only the completion text.
 \ For example: If the user sent "The sky is", you would reply
 \ "The sky is blue.". If the input is code, write quality code that is
 \ syntactically correct. If the input is text, respond as a wise, succinct
-\ writer. Do not response in a markdown code block.'
-	let l:prompt .= 'Request: ' . a:prompt
+\ writer.'
+	let l:prompt .= ' Request: ' . a:prompt
         call append(line('.'), llm#LLMRead(l:prompt))
     else
-	if !empty(&filetype)
-	    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
-	else
-	    let l:prompt = ''
-	endif
-        let l:prompt .= '
+        let l:prompt = '
 \ Finish this input. Respond with the text including the completion text.
 \ For example: If the user sent "The sky is", you would reply
 \ "The sky is blue.". If the input is code, write quality code that is
 \ syntactically correct. If the input is text, respond as a wise, succinct
-\ writer. Do not response in a markdown code block.'
+\ writer.'
         call llm#LLMFilter(l:prompt)
     endif
 endfunction
