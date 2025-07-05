@@ -610,6 +610,6 @@ function! llm#LLMComplete() abort range
 \ For example: If the user sent "The sky is", you would reply
 \ "The sky is blue.". If the input is code, write quality code that is
 \ syntactically correct. If the input is text, respond as a wise, succinct
-\ writer.'
+\ writer. Do not response in a markdown code block.'
     call llm#LLMFilter(l:prompt)
 endfunction
