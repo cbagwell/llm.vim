@@ -38,7 +38,11 @@ function! llm#LLMChat(...) abort range
     " Only paste prompt if not already in the llmchat buffer
     if bufnr('%') != bufnr('llmchat.md')
         if (a:firstline == line("'<") && a:lastline == line("'>")) || a:firstline != a:lastline
-            let l:pasted_prompt = ['This text is from a vim editing session that reports the filetype as "' . &filetype . '".', '', '```' . &filetype ]
+	    if !empty(&filetype)
+		let l:pasted_prompt = ['This text is from a vim editing session that reports the filetype as "' . &filetype . '".', '', '```' . &filetype ]
+	    else
+		let l:pasted_prompt = []
+	    endif
             call extend(l:pasted_prompt, getline(a:firstline, a:lastline))
             call extend(l:pasted_prompt, ['```'])
         endif
@@ -589,28 +593,45 @@ function! llm#LLMFilter(prompt) abort range
 endfunction
 
 function! llm#LLMDoc() abort range
-    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+    if !empty(&filetype)
+	let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+    else
+	let l:prompt = ''
+    endif
+
     let l:prompt .= '
-\ Explain the purpose of this function like docstring but using most
-\ appropriate format for this code. Respond with the code including any docs.
-\ Do not alter the functional aspect of the code, but simply document it and
-\ respond with all of it. Do not respond in a markdown code block.'
+\ Create documentation that describes the purpose of this function similar
+\ to docstring for python but using an appropriate format for this code.
+\ Respond with the docs followed by the original code.
+\ Do not modify or add comments to any of the original code.
+\ Do not respond in a markdown code block.'
     call llm#LLMFilter(l:prompt)
 endfunction
 
 function! llm#LLMFix() abort range
-    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+    if !empty(&filetype)
+	let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+    else
+	let l:prompt = ''
+    endif
+
     let l:prompt .= '
 \ Fix the syntax of this code. Respond with the code including any fixes.
-\ Do not alter the functional aspect of the code, but simply fix it and
-\ respond with all of it. Do not respond in a markdown code block.'
+\ Do not alter the functional aspect of the code, but simply
+\ fix and respond with all of it. Do not respond in a markdown code block.
+\ Do not modify indentation or whitespace when given a single line.'
     call llm#LLMFilter(l:prompt)
 endfunction
 
 function! llm#LLMComplete(prompt) abort range
     if !empty(a:prompt)
-        let l:prompt = 'You will be provided a request from a vim editing session that reports the file type as "' . &filetype . '".'
-        let l:prompt .= '
+	if !empty(&filetype)
+	    let l:prompt = 'You will be provided a request from a vim editing session that reports the file type as "' . &filetype . '".'
+	else
+	    let l:prompt = ''
+	endif
+
+	let l:prompt .= '
 \ Finish this input. Respond with only the completion text.
 \ For example: If the user sent "The sky is", you would reply
 \ "The sky is blue.". If the input is code, write quality code that is
@@ -619,7 +640,11 @@ function! llm#LLMComplete(prompt) abort range
 	let l:prompt .= 'Request: ' . a:prompt
         call append(line('.'), llm#LLMRead(l:prompt))
     else
-        let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+	if !empty(&filetype)
+	    let l:prompt = 'You will be provided text from a vim editing session that reports the file type as "' . &filetype . '".'
+	else
+	    let l:prompt = ''
+	endif
         let l:prompt .= '
 \ Finish this input. Respond with the text including the completion text.
 \ For example: If the user sent "The sky is", you would reply

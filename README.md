@@ -88,7 +88,7 @@ The following keymaps are active when in the `llmchat` buffer:
   * **:LLMIsRunning**
     * Echoes "1" if an `llm` job is currently running, "0" otherwise.
   * **:LLMFix**
-    * Sends the current visual selection/range/ling to `llm` to fix any
+    * Sends the current visual selection/range/line to `llm` to fix any
       syntatical errors and replaces with the results.
   * **:LLMComplete**
     * Sends the current visual selection/range/line or the optional arguments
