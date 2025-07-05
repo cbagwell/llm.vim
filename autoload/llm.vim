@@ -183,6 +183,10 @@ function! s:LLMChatOpenWin() abort
 	" Helps readability without changing buffer contents
 	setlocal wrap
 	setlocal linebreak
+	" Improves readability even more but does change buffer contents.
+	if g:llm_stream_reformat_response
+	    setlocal autoindent
+	endif
     endif
 endfunction
 
