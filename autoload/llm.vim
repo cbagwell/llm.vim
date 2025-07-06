@@ -127,6 +127,7 @@ function! llm#LLMChat(...) abort range
         let l:llm_cmd = 'cat ' . l:current_temp_context_file . ' | ' . s:BuildLLMCommand()
         if g:llm_enable_usage
             let l:llm_cmd .= ' -u'
+        endif
         "let l:llm_cmd = 'echo this is a fixed response.'
         "let l:llm_cmd = 'while true; do sleep 5; echo sleeping; done'
         let l:cmd = ['/bin/sh', '-c', l:llm_cmd]
