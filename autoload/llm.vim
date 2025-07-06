@@ -563,7 +563,7 @@ function! llm#LLMRead(prompt) abort
 endfunction
 
 function! s:FilterBasePrompt()
-    let l:prompt = 'Do not respond within markdown fences unless requested to. '
+    let l:prompt = 'Do NOT wrap code in markdown code blocks.  NO markdown fences. '
     if !empty(&filetype)
 	let l:prompt .= 'You will be provided text from a vim buffer that reports the file type as "' . &filetype . '". '
     endif
@@ -604,30 +604,24 @@ endfunction
 
 function! llm#LLMFix() abort range
     let l:prompt = '
-\ Fix the syntax of this code. Respond with the code including any fixes.
-\ Do not alter the functional aspect of the code, but simply
+\ Fix the syntax errors of this code. Respond with the original code including
+\ any fixed. Do not alter the functional aspect of the code, but simply
 \ fix and respond with all of it. Retain all whitespace. For example,
 \ if provided `  return` then respond `  return;` and not `return;`.'
     call llm#LLMFilter(l:prompt)
 endfunction
 
 function! llm#LLMComplete(prompt) abort range
-    if !empty(a:prompt)
-	let l:prompt = '
-\ Finish this input. Respond with only the completion text.
+    let l:prompt = '
+\ Finish this input. Respond with the full completion text.
 \ For example: If the user sent "The sky is", you would reply
 \ "The sky is blue.". If the input is code, write quality code that is
 \ syntactically correct. If the input is text, respond as a wise, succinct
 \ writer.'
-	let l:prompt .= ' Request: ' . a:prompt
+    if !empty(a:prompt)
+	let l:prompt .= ' ' . a:prompt
         call append(line('.'), llm#LLMRead(l:prompt))
     else
-        let l:prompt = '
-\ Finish this input. Respond with the text including the completion text.
-\ For example: If the user sent "The sky is", you would reply
-\ "The sky is blue.". If the input is code, write quality code that is
-\ syntactically correct. If the input is text, respond as a wise, succinct
-\ writer.'
         call llm#LLMFilter(l:prompt)
     endif
 endfunction
