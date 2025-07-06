@@ -562,7 +562,7 @@ function! llm#LLMRead(prompt) abort
 endfunction
 
 function! s:FilterBasePrompt()
-    let l:prompt = 'Do not respond in a markdown code block unless requested to. '
+    let l:prompt = 'Do not respond within markdown fences unless requested to. '
     if !empty(&filetype)
 	let l:prompt .= 'You will be provided text from a vim buffer that reports the file type as "' . &filetype . '". '
     endif
