@@ -229,17 +229,13 @@ Continue a conversation:
     Sets the command to invoke `llm` via Python module.
 
 `g:llm_enable_usage`                                    *g:llm_enable_usage*
-    Default: v:false
-    When set to v:true, the `-u` option will be added to the `llm` command.
-    This enables `llm` to report token usage information as the last line of
-    its output.
+    Default: v:true 
+    When set to v:true, token usage will be reported after each response.
 
     Example:
 >
-    let g:llm_enable_usage = v:true
+    let g:llm_enable_usage = v:false
 <
-    Enables token usage reporting.
-
 `g:llm_chat_new_behavior`                               *g:llm_chat_new_behavior*
     Default: 'current'
     This variable controls how the `llmchat` buffer is opened when

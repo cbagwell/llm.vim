@@ -179,10 +179,9 @@ to help guide the conversation.
     let g:llm_command = '/usr/local/bin/llm' " Set to absolute path
     ```
 
-  * `g:llm_enable_usage` (Default: `v:false`)
+  * `g:llm_enable_usage` (Default: `v:true`)
     This variable controls whether the `-u` option is added to the `llm`
-    command, which enables token usage reporting. When enabled, the last line
-    of `llm` response will include token usage statistics.
+    command, which enables token usage reporting.
     To disable it, add the following to your `~/.vimrc` or
     `~/.config/nvim/init.vim`:
 
