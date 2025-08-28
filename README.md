@@ -1,5 +1,7 @@
 # llm.vim - AI Assistant for Vim
 
+![LLM VIM Screenshot](llm-vim.jpg)
+
 `llm.vim` is a Vim plugin that integrates with
 [Simon Willison's llm](https://llm.datasette.io/en/stable/)
 command-line tool to provide an AI chat assistant directly within Vim. It
